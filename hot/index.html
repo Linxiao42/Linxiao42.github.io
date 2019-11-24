@@ -50,17 +50,17 @@
   };
 </script>
 
-  <meta name="description" content="半醒半醉日复日，花落花开年复年">
+  <meta name="description" content="AV.initialize(&quot;lRaS7JronjiApi73k5iWP8xD-gzGzoHsz&quot;, &quot;mJ0pFWRQroOumHbNkCV5ohp8&quot;);   var time=0   var title=&quot;&quot;   var url=&quot;&quot;   var query = new AV.Query(&amp;apos;Counter&amp;apos;);   query.notEqualTo(&amp;apos;id&amp;apos;,0);   query.desc">
 <meta property="og:type" content="website">
-<meta property="og:title" content="categories">
-<meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;categories&#x2F;index.html">
+<meta property="og:title" content="热度">
+<meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;hot&#x2F;index.html">
 <meta property="og:site_name" content="Linxiao&#39;s Blog">
-<meta property="og:description" content="半醒半醉日复日，花落花开年复年">
+<meta property="og:description" content="AV.initialize(&quot;lRaS7JronjiApi73k5iWP8xD-gzGzoHsz&quot;, &quot;mJ0pFWRQroOumHbNkCV5ohp8&quot;);   var time=0   var title=&quot;&quot;   var url=&quot;&quot;   var query = new AV.Query(&amp;apos;Counter&amp;apos;);   query.notEqualTo(&amp;apos;id&amp;apos;,0);   query.desc">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-24T05:40:07.417Z">
+<meta property="og:updated_time" content="2019-11-24T12:21:21.219Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://linxiao.pro/categories/">
+<link rel="canonical" href="https://linxiao.pro/hot/">
 
 
 <script id="page-configurations">
@@ -74,7 +74,7 @@
   };
 </script>
 
-  <title>categories | Linxiao's Blog
+  <title>热度 | Linxiao's Blog
   </title>
   
 
@@ -227,7 +227,7 @@
     <div class="post-block" lang="zh-CN">
       <header class="post-header">
 
-<h2 class="post-title" itemprop="name headline">categories
+<h2 class="post-title" itemprop="name headline">热度
 </h2>
 
 <div class="post-meta">
@@ -241,15 +241,27 @@
       
       
       <div class="post-body">
-          <div class="category-all-page">
-            <div class="category-all-title">
-              目前共计 1 个分类
-            </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/IT/">IT</a><span class="category-list-count">1</span></li></ul>
-            </div>
-          </div>
-        
+          <div id="hot"></div><script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script><script>AV.initialize("lRaS7JronjiApi73k5iWP8xD-gzGzoHsz", "mJ0pFWRQroOumHbNkCV5ohp8");</script><script type="text/javascript">
+  var time=0
+  var title=""
+  var url=""
+  var query = new AV.Query('Counter');
+  query.notEqualTo('id',0);
+  query.descending('time');
+  query.limit(1000);
+  query.find().then(function (todo) {
+    for (var i=0;i<1000;i++){
+      var result=todo[i].attributes;
+      time=result.time;
+      title=result.title;
+      url=result.url;
+      var content="<p>"+"<font color='#1C1C1C'>"+"[文章热度:"+time+"℃]"+"</font>"+"<a href='"+"https://linxiao.pro/"+url+"'>"+title+"</a>"+"</p>";
+      document.getElementById("hot").innerHTML+=content
+    }
+  }, function (error) {
+    console.log("error");
+  });
+</script>
       </div>
       
       
@@ -265,6 +277,7 @@
 
           </div>
           
+    <div class="comments" id="comments"></div>
 
         </div>
           
