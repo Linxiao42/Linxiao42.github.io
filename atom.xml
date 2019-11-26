@@ -17,7 +17,7 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Linux系统编程-错误与errno</title>
+    <title>Linux系统编程-errno详解</title>
     <link href="https://linxiao.pro/2019/11/26/linux-programming-error/"/>
     <id>https://linxiao.pro/2019/11/26/linux-programming-error/</id>
     <published>2019-11-26T14:05:44.000Z</published>
