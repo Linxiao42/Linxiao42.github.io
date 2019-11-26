@@ -53,30 +53,28 @@
 
   <meta name="description" content="半醒半醉日复日，花落花开年复年">
 <meta property="og:type" content="website">
-<meta property="og:title" content="categories">
-<meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;categories&#x2F;index.html">
+<meta property="og:title" content="Linxiao&#39;s Blog">
+<meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;index.html">
 <meta property="og:site_name" content="Linxiao&#39;s Blog">
 <meta property="og:description" content="半醒半醉日复日，花落花开年复年">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-24T05:40:07.000Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://linxiao.pro/categories/">
+<link rel="canonical" href="https://linxiao.pro/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome: false,
+    isHome: true,
     isPost: false,
-    isPage: true,
+    isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>categories | Linxiao's Blog
-  </title>
+  <title>Linxiao's Blog - 学习、记录、分享</title>
   
 
 
@@ -215,53 +213,113 @@
       <div class="main-inner">
         <div class="content-wrap">
           
-  
-  
 
           <div class="content">
             
 
   <div class="posts-expand">
-    
-    
-    
-    <div class="post-block" lang="zh-CN">
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linxiao.pro/2019/11/26/linux-programming-error/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Linxiao">
+      <meta itemprop="description" content="半醒半醉日复日，花落花开年复年">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Linxiao's Blog">
+    </span>
       <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/11/26/linux-programming-error/" class="post-title-link" itemprop="url">Linux系统编程-errno</a>
+        </h2>
 
-<h2 class="post-title" itemprop="name headline">categories
-</h2>
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
 
-<div class="post-meta">
+              <time title="创建时间：2019-11-26 14:05:44 / 修改时间：06:05:44" itemprop="dateCreated datePublished" datetime="2019-11-26T14:05:44Z">2019-11-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/26/linux-programming-error/" class="post-meta-item leancloud_visitors" data-flag-title="Linux系统编程-errno" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/26/linux-programming-error/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/26/linux-programming-error/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
   
 
-</div>
+        </div>
+      </header>
 
-</header>
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-      
-      
-      <div class="post-body">
-          <div class="category-all-page">
-            <div class="category-all-title">
-              目前共计 1 个分类
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/11/26/linux-programming-error/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
             </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li></ul>
-            </div>
-          </div>
+          <!--/noindex-->
         
-      </div>
-      
-      
       
     </div>
-    
 
     
     
     
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
   </div>
+
+  
+
 
 
           </div>
