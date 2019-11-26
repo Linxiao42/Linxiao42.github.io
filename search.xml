@@ -55,8 +55,8 @@
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>现在来小结一下，上面一共讲解了一个特殊的环境变量errno，当执行完程序或命令时，可以用<code>$?</code>来查看其结果。同时它也是一个Linux命令，可用来查看错误描述。而在系统编程中，它则用于保存系统调用或函数执行的错误结果。函数strerror可以解析出errno代码所对应的错误信息，而perror函数则可在系统编程中更好的输出错误。</p>
 ]]></content>
       <tags>
-        <tag>系统编程</tag>
         <tag>C</tag>
+        <tag>系统编程</tag>
       </tags>
   </entry>
   <entry>
