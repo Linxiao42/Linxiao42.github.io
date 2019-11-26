@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Linux系统编程笔记——errno和perror</title>
+    <title>Linux系统编程笔记-errno和perror</title>
     <url>/2019/11/26/linux-programming-error/</url>
     <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p><a id="more"></a>
 <h3 id="errno-变量"><a href="#errno-变量" class="headerlink" title="errno 变量"></a>errno 变量</h3><p>举个例子，当我们使用<code>ls</code>命令来打开一个不存在的目录<code>abc</code>，很明显此时会报错并返回错误信息</p>
@@ -55,35 +55,8 @@
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>现在来小结一下，上面一共讲解了一个特殊的环境变量errno，当执行完程序或命令时，可以用<code>$?</code>来查看其结果。同时它也是一个Linux命令，可用来查看错误描述。而在系统编程中，它则用于保存系统调用或函数执行的错误结果。函数strerror可以解析出errno代码所对应的错误信息，而perror函数则可在系统编程中更好的输出错误。</p>
 ]]></content>
       <tags>
-        <tag>C</tag>
         <tag>系统编程</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2019/11/25/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<a id="more"></a>
-
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>IT</category>
-      </categories>
-      <tags>
         <tag>C</tag>
-        <tag>Linux</tag>
       </tags>
   </entry>
 </search>
