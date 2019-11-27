@@ -3,7 +3,7 @@
   <entry>
     <title>Linux系统编程-errno详解</title>
     <url>/2019/11/26/linux-programming-error/</url>
-    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p><a id="more"></a>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。<a id="more"></a>用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p>
 <h3 id="errno-变量"><a href="#errno-变量" class="headerlink" title="errno 变量"></a>errno 变量</h3><p>举个例子，当我们使用<code>ls</code>命令来打开一个不存在的目录<code>abc</code>，很明显此时会报错并返回错误信息</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜  ~ ls abc</span><br><span class="line">ls: cannot access 'abc': No such file or directory</span><br></pre></td></tr></table></figure>
 
@@ -12,14 +12,14 @@
 
 <p>可以看到，当前返回的错误码2实际上代表的是<code>No such file or directory</code>。如果我们已经知道了错误码，那么应该如何查看错误码对应的错误信息呢？总是用命令行或程序去试错，然后再记录下来成本有些大。所以此时便需要引入errno命令。</p>
 <h3 id="errno-命令"><a href="#errno-命令" class="headerlink" title="errno 命令"></a>errno 命令</h3><p>没错，errno不仅是个特殊的环境变量，用<code>$?</code>来表示。与此同时，它也是一条Linux系统命令，使用<code>man errno</code>可以查看相关手册。如果你的系统中没有errno命令，那么需要安装<code>moreutils</code>，比如说在Ubuntu中：<code>sudo apt install moreutils</code></p>
-<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191126/20191126105824.png" alt></p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191126/20191126105824.png" alt=""></p>
 <p>从上图可以看出errno命令的基本用法</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">➜  ~ errno 2                                     # 查看相应错误宏名称</span><br><span class="line">ENOENT 2 No such file or directory</span><br><span class="line">➜  ~ errno -s file                               # 通过给出的关键词来搜索错误描述</span><br><span class="line">ENOENT 2 No such file or directory</span><br><span class="line">EBADF 9 Bad file descriptor</span><br><span class="line">EEXIST 17 File exists</span><br><span class="line">...</span><br><span class="line">➜  ~ errno -l                                    # 列出所有的错误值</span><br><span class="line">EPERM 1 Operation not permitted</span><br><span class="line">ENOENT 2 No such file or directory</span><br><span class="line">ESRCH 3 No such process</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
 
 
 <h3 id="error在系统编程中的使用"><a href="#error在系统编程中的使用" class="headerlink" title="error在系统编程中的使用"></a>error在系统编程中的使用</h3><p>上面从命令行角度来讲解了errno的用法，那么如果以开发者的角度来看，errno又该如何使用？可以从手册中找到答案。之前我们查看errno命令是直接使用<code>man errno</code>，但在代码编写中，errno是作为一个库全局变量存在，因此我们需要通过<code>man 3 errno</code>命令来查看相应用法：</p>
-<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191126/20191126111638.png" alt></p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191126/20191126111638.png" alt=""></p>
 <p>以上仅截取了部分文档，详细可自行查看。但从文档头部我们得到了两条重要信息，首先errno在代码中表示最后一次函数调用出错的错误码。其次，当使用此值的时候，我们需要引入头文件<code>errno.h</code>。在文档后面，还可以看到一个基本的伪代码示例：</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// A common mistake is to do</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (somecall() == <span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"somecall() failed\n"</span>);</span><br><span class="line">	<span class="keyword">if</span> (errno == ...) &#123; ... &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
