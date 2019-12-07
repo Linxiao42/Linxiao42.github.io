@@ -51,13 +51,13 @@
   };
 </script>
 
-  <meta name="description" content="前言当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。">
+  <meta name="description" content="当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。">
 <meta name="keywords" content="C,系统编程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux系统编程-errno详解">
 <meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;2019&#x2F;11&#x2F;26&#x2F;linux-programming-error&#x2F;index.html">
 <meta property="og:site_name" content="Linxiao&#39;s Blog">
-<meta property="og:description" content="前言当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。">
+<meta property="og:description" content="当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191126&#x2F;20191126105824.png">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191126&#x2F;20191126111638.png">
@@ -297,7 +297,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。<a id="more"></a>用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p>
+        <p>当进行系统编程的时候，知道一个系统调用或库函数的返回结果极其重要。通常情况下，函数执行正确，可以返回需要的结果或无返回。然而，一旦发生错误，除了知道出错以外，我们还需要更详细的错误信息来辅助定位问题并加以修正。在系统编程中，错误是通过函数的返回值和特殊变量errno来描述。<a id="more"></a>用函数返回值来描述错误应该是最常见的手段，比方说-1代表文件打开失败，-2代表参数缺失等等。但很多错误其实都是通用的，如果针对每一个函数用一个错误码来表示，那么不免有些冗余，二来函数的生命周期有限，仅能描述自身，而无法描述整个程序的错误状态。所以我们需要一个全局范围的错误码和对应的错误定义，来帮助我们描述错误。</p>
 <h3 id="errno-变量"><a href="#errno-变量" class="headerlink" title="errno 变量"></a>errno 变量</h3><p>举个例子，当我们使用<code>ls</code>命令来打开一个不存在的目录<code>abc</code>，很明显此时会报错并返回错误信息</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜  ~ ls abc</span><br><span class="line">ls: cannot access 'abc': No such file or directory</span><br></pre></td></tr></table></figure>
 
@@ -450,7 +450,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#errno-变量"><span class="nav-text">errno 变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#errno-命令"><span class="nav-text">errno 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#error在系统编程中的使用"><span class="nav-text">error在系统编程中的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#perror-函数"><span class="nav-text">perror 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#errno-变量"><span class="nav-text">errno 变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#errno-命令"><span class="nav-text">errno 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#error在系统编程中的使用"><span class="nav-text">error在系统编程中的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#perror-函数"><span class="nav-text">perror 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -466,7 +466,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -479,7 +479,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

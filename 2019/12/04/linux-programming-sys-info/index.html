@@ -51,13 +51,13 @@
   };
 </script>
 
-  <meta name="description" content="前言Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行ls命令或登录时，其实就会查看&#x2F;etc&#x2F;passwd和&#x2F;etc&#x2F;group文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I&#x2F;O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。">
+  <meta name="description" content="Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行ls命令或登录时，其实就会查看&#x2F;etc&#x2F;passwd和&#x2F;etc&#x2F;group文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I&#x2F;O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。">
 <meta name="keywords" content="C,系统编程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="linux系统编程-系统属性">
 <meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;2019&#x2F;12&#x2F;04&#x2F;linux-programming-sys-info&#x2F;index.html">
 <meta property="og:site_name" content="Linxiao&#39;s Blog">
-<meta property="og:description" content="前言Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行ls命令或登录时，其实就会查看&#x2F;etc&#x2F;passwd和&#x2F;etc&#x2F;group文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I&#x2F;O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。">
+<meta property="og:description" content="Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行ls命令或登录时，其实就会查看&#x2F;etc&#x2F;passwd和&#x2F;etc&#x2F;group文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I&#x2F;O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191203&#x2F;20191203164731.png">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191203&#x2F;20191203214534.png">
@@ -301,7 +301,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行<code>ls</code>命令或登录时，其实就会查看<code>/etc/passwd</code>和<code>/etc/group</code>文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I/O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。<a id="more"></a></p>
+        <p>Linux系统在运行时依赖大量的属性及配置文件，相信不少人深有体会。举个例子，比方说在执行<code>ls</code>命令或登录时，其实就会查看<code>/etc/passwd</code>和<code>/etc/group</code>文件，来确认当前进程是否有足够权限来执行操作。由于历史原因，系统中很多属性和配置都是以文本文件来存储，通过I/O的方式来直接操作这些数据并不高效，但有时又不得不用。更多时候，则倾向于使用系统调用或C库函数来操作系统属性。<a id="more"></a></p>
 <h3 id="密码文件"><a href="#密码文件" class="headerlink" title="密码文件"></a>密码文件</h3><p>UNIX系统密码文件通常存储了用户基本信息，通过<code>cat /etc/passwd</code>命令可查看：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin</span><br><span class="line">bin:x:2:2:bin:/bin:/usr/sbin/nologin</span><br><span class="line">sys:x:3:3:sys:/dev:/usr/sbin/nologin</span><br><span class="line">gdm:x:123:128:Gnome Display Manager:/var/lib/gdm3:/bin/false</span><br><span class="line">noir:x:1000:1000:Darling,,,:/home/noir:/usr/bin/zsh</span><br><span class="line">sshd:x:124:65534::/run/sshd:/usr/sbin/nologin</span><br><span class="line">alan:x:1001:1001:Alan,,,:/home/alan:/bin/bash</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
@@ -523,6 +523,9 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
+                <a href="/2019/12/07/linux-programming-process-basic/" rel="prev" title="linux系统编程-进程管理">
+                  linux系统编程-进程管理 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
       </footer>
@@ -562,7 +565,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#密码文件"><span class="nav-text">密码文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看用户信息"><span class="nav-text">查看用户信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历用户信息"><span class="nav-text">遍历用户信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#阴影文件"><span class="nav-text">阴影文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看用户密码信息"><span class="nav-text">查看用户密码信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历用户密码信息"><span class="nav-text">遍历用户密码信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组文件"><span class="nav-text">组文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看组信息"><span class="nav-text">查看组信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历组信息"><span class="nav-text">遍历组信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他属性文件"><span class="nav-text">其他属性文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统标识"><span class="nav-text">系统标识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#密码文件"><span class="nav-text">密码文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看用户信息"><span class="nav-text">查看用户信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历用户信息"><span class="nav-text">遍历用户信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#阴影文件"><span class="nav-text">阴影文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看用户密码信息"><span class="nav-text">查看用户密码信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历用户密码信息"><span class="nav-text">遍历用户密码信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组文件"><span class="nav-text">组文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看组信息"><span class="nav-text">查看组信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#遍历组信息"><span class="nav-text">遍历组信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他属性文件"><span class="nav-text">其他属性文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统标识"><span class="nav-text">系统标识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -578,7 +581,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -591,7 +594,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

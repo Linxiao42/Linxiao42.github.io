@@ -51,13 +51,13 @@
   };
 </script>
 
-  <meta name="description" content="前言之前讨论过大量关于文件I&#x2F;O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。">
+  <meta name="description" content="之前讨论过大量关于文件I&#x2F;O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。">
 <meta name="keywords" content="C,系统编程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="linux系统编程-文件与目录管理">
 <meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;2019&#x2F;12&#x2F;03&#x2F;linux-programming-file-and-directory&#x2F;index.html">
 <meta property="og:site_name" content="Linxiao&#39;s Blog">
-<meta property="og:description" content="前言之前讨论过大量关于文件I&#x2F;O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。">
+<meta property="og:description" content="之前讨论过大量关于文件I&#x2F;O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191130&#x2F;20191130090457.png">
 <meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20191130&#x2F;20191130105045.png">
@@ -312,7 +312,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前讨论过大量关于文件I/O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。<a id="more"></a></p>
+        <p>之前讨论过大量关于文件I/O的系统调用，现在我们的视角从文件内部回到文件本身。在Linux中一切皆为文件，而文件包含大量的元数据。诸如：类型、权限、硬链接、软连接、所属用户、所属组、最后访问时间、最后修改时间、最后状态改变时间等。本篇主要讲解文件这些属性的获取与管理。<a id="more"></a></p>
 <h3 id="从ls说起"><a href="#从ls说起" class="headerlink" title="从ls说起"></a>从ls说起</h3><p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191130/20191130090457.png" alt=""></p>
 <p>当需要查看文件属性的时候，通常使用最多的命令是<code>ls -l</code>，上图说明了各列所代表的含义，这里挑出以下两列进行补充说明：</p>
 <h4 id="文件类型"><a href="#文件类型" class="headerlink" title="文件类型"></a>文件类型</h4><p><code>ls -l</code>命令所列文件属性的中第一列第一个字母代表文件类型，Linux文件一共分为7大类，用字母和符号<code>-</code>表示，其含义分别是：</p>
@@ -650,7 +650,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从ls说起"><span class="nav-text">从ls说起</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件类型"><span class="nav-text">文件类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#硬链接数"><span class="nav-text">硬链接数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stat系统调用"><span class="nav-text">stat系统调用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件类型解析"><span class="nav-text">文件类型解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件权限解析"><span class="nav-text">文件权限解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限设置"><span class="nav-text">权限设置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#访问权限设置"><span class="nav-text">访问权限设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#所有权设置"><span class="nav-text">所有权设置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接"><span class="nav-text">链接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬链接"><span class="nav-text">硬链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#符号链接"><span class="nav-text">符号链接</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#读取符号链接路径"><span class="nav-text">读取符号链接路径</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解除链接"><span class="nav-text">解除链接</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#创建临时文件"><span class="nav-text">创建临时文件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除"><span class="nav-text">删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拷贝"><span class="nav-text">拷贝</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动、重命名"><span class="nav-text">移动、重命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目录操作"><span class="nav-text">目录操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#获取当前工作目录"><span class="nav-text">获取当前工作目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#改变当前工作目录"><span class="nav-text">改变当前工作目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建目录"><span class="nav-text">创建目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除目录"><span class="nav-text">删除目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#读取目录"><span class="nav-text">读取目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#从ls说起"><span class="nav-text">从ls说起</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件类型"><span class="nav-text">文件类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#硬链接数"><span class="nav-text">硬链接数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stat系统调用"><span class="nav-text">stat系统调用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件类型解析"><span class="nav-text">文件类型解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件权限解析"><span class="nav-text">文件权限解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限设置"><span class="nav-text">权限设置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#访问权限设置"><span class="nav-text">访问权限设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#所有权设置"><span class="nav-text">所有权设置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接"><span class="nav-text">链接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬链接"><span class="nav-text">硬链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#符号链接"><span class="nav-text">符号链接</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#读取符号链接路径"><span class="nav-text">读取符号链接路径</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解除链接"><span class="nav-text">解除链接</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#创建临时文件"><span class="nav-text">创建临时文件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除"><span class="nav-text">删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拷贝"><span class="nav-text">拷贝</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动、重命名"><span class="nav-text">移动、重命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目录操作"><span class="nav-text">目录操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#获取当前工作目录"><span class="nav-text">获取当前工作目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#改变当前工作目录"><span class="nav-text">改变当前工作目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建目录"><span class="nav-text">创建目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除目录"><span class="nav-text">删除目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#读取目录"><span class="nav-text">读取目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -666,7 +666,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -679,7 +679,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
