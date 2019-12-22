@@ -1,6 +1,209 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>JVM探究-类加载机制</title>
+    <url>/2019/12/22/jvm-classloader/</url>
+    <content><![CDATA[<p>编译器可以把Java代码编译成Class文件，Class文件描述了类中各种详细信息，但是它们都是静态的二进制码。通过虚拟机将Class文件加载到内存中，并对其数据进行连接和初始化，最终形成可以直接使用的类型，这一过程便称作虚拟机的类加载机制。<a id="more"></a></p>
+<h3 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h3><p>任何一个类型在使用之前都将经历上述所说的三个类加载过程：加载、连接和初始化。一个类型在成功经历这三个步骤后便可被开发人员在程序中访问，它们被称作Class类型，通常用java.lang.class来表示。其中，在连接这一部分又分为：验证、准备和解析三个子步骤，如下图所示：</p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191219/20191219174109.png" alt=""></p>
+<p>Class只有在必须要使用的时候才会被装载，Java虚拟机不会无条件地装载Class类型。Java虚拟机规定，一个类或接口在初次使用前，必须进行初始化。这里指的使用，是指主动使用，主动使用只有下列几种情况：</p>
+<ul>
+<li>当创建一个类的实例时，比如使用new关键字，或者通过反射、克隆、反序列化</li>
+<li>当调用类的静态方法时，即当使用了字节码invokestatic指令</li>
+<li>当使用类或接口的静态字段时（final常量除外），比如，使用getstatic或者putstatic指令</li>
+<li>当使用java.lang.reflect包中的方法反射类的方法时</li>
+<li>当初始化子类时，要求初始化父类</li>
+<li>作为启动虚拟机，含有main()方法的那个类</li>
+</ul>
+<p>除了以上的情况属于主动使用，其他的情况均属于被动调用。被动使用不会引起类的初始化。</p>
+<h4 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h4><p><code>加载</code>是<code>类加载</code>过程的第一个阶段，在加载阶段，虚拟机会完成以下工作：</p>
+<ul>
+<li>通过类的全名，获取类的二进制数据流</li>
+<li>解析类的二进制数据流为方法区内的数据结构</li>
+<li>创建java.lang.Class类的实例，表示该类型</li>
+</ul>
+<p>关于类的二进制数据流，虚拟机可以通过多种途径获得，比如class后缀的文件、从jar、zip包中提取或通过网络加载等等。</p>
+<h4 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h4><p>验证是连接阶段的第一步，这一阶段的目的是为了确保Class文件的字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。从整体上看，验证阶段大致上会完成4个检验动作：文件格式验证、元数据验证、字节码验证、符合引用验证</p>
+<h5 id="文件格式验证"><a href="#文件格式验证" class="headerlink" title="文件格式验证"></a>文件格式验证</h5><p>验证字节流是否符合Class文件格式的规范，并且能被当前版本的虚拟机处理，包括：</p>
+<ul>
+<li><p>是否以魔数0xCAFEBABE开头</p>
+</li>
+<li><p>主、次版本号是否在当前虚拟机处理范围内</p>
+</li>
+<li><p>常量池的常量中是否有不被支持的常量类型（检查常量tag标志）</p>
+</li>
+<li><p>指向常量中的各种索引值中是否有指向不存在的常量或不符合类型的常量</p>
+</li>
+<li><p>CONSTANT_Utf8_info型的常量中是否有不符合UTF8编码的数据</p>
+</li>
+<li><p>Class文件中各个部分及文件本身是否有被删除的或附加的其他信息</p>
+<p>……</p>
+</li>
+</ul>
+<p>此验证阶段的主要目的是保证输入的字节流能正确地解析并存储于方法区之内，格式上符合描述一个Java类型信息的要求。</p>
+<h5 id="元数据验证"><a href="#元数据验证" class="headerlink" title="元数据验证"></a>元数据验证</h5><p>对字节码描述的信息进行语义分析，以保证其描述的信息符合Java语言规范的要求，包括：</p>
+<ul>
+<li><p>这个类是否有父类（除了java.lang.Object之外，所有的类都应当有父类）</p>
+</li>
+<li><p>这个类的父类是否继承了不允许被继承的类（被final修饰的类）</p>
+</li>
+<li><p>如果这个类不是抽象类，是否实现了其父类或接口之中要求实现的所有方法</p>
+</li>
+<li><p>类中的字段、方法是否与父类产生矛盾（例如覆盖了父类的final字段，或者出现不符合规则的方法重载，例如方法参数都一致，但返回值类型却不同等）</p>
+<p>……</p>
+</li>
+</ul>
+<p>此阶段的主要目的是对类的元数据进行语义校验，保证不存在不符合Java语言规范的元数据信息。</p>
+<h5 id="字节码验证"><a href="#字节码验证" class="headerlink" title="字节码验证"></a>字节码验证</h5><p>对类的方法体进行校验分析，保证被校验类的方法在运行时不会做出危害虚拟机安全的事件，包括：</p>
+<ul>
+<li><p>保证任意时刻操作数栈的数据类型与指令代码序列都能配合工作，例如不会出现类似这样的情况：在操作栈放置了一个int类型的数据，使用时却按long类型来加载入本地变量表中。</p>
+</li>
+<li><p>保证跳转指令不会跳转到方法体以外的字节码指令上</p>
+</li>
+<li><p>保证方法体中的类型转换是有效的，例如可以把一个子类对象赋值给父类数据类型，这是安全的，但是把父类对象赋值给子类数据类型，甚至把对象赋值给与它毫无继承关系、完全不相干的一个数据类型，则是危险和不合法的</p>
+<p>……</p>
+</li>
+</ul>
+<p>此阶段的目的是通过数据流和控制流分析，确定程序语义是合法的、符合逻辑的。</p>
+<h5 id="符号引用验证"><a href="#符号引用验证" class="headerlink" title="符号引用验证"></a>符号引用验证</h5><p>符号引用验证可以看做是对类自身以外（常量池中的各种符号引用）的信息进行匹配性校验，包括：</p>
+<ul>
+<li><p>符号引用中通过字符串描述的类名是否能找到对应的类</p>
+</li>
+<li><p>在指定类中是否存在符合方法的字段描述符以及简单名称所描述的方法和字段</p>
+</li>
+<li><p>符号引用中的类、字段、方法的访问性（private、protected、public、default）是否可被当前类访问</p>
+<p>……</p>
+</li>
+</ul>
+<p>此阶段的目的是确保解析动作能正常执行，如果无法通过符号引用验证，那么将会抛出异常。</p>
+<h4 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h4><p>当成功经历验证阶段后，JVM接下来要做的事情就是对存放在方法区中类数据信息的类变量执行初始化，这里所执行的初始化操作并非是指加载阶段中的初始化操作，这里仅仅是为类中的所有静态变量分配内存空间，并未其设置一个初始值（由于还没有产生对象，因此实例变量将不在此操作范围内），而非用户手动执行赋值。</p>
+<table>
+<thead>
+<tr>
+<th>变量类型</th>
+<th>初始值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>byte</td>
+<td>(byte)0</td>
+</tr>
+<tr>
+<td>short</td>
+<td>(short)0</td>
+</tr>
+<tr>
+<td>int</td>
+<td>0</td>
+</tr>
+<tr>
+<td>long</td>
+<td>0L</td>
+</tr>
+<tr>
+<td>float</td>
+<td>0.0f</td>
+</tr>
+<tr>
+<td>double</td>
+<td>0.0d</td>
+</tr>
+<tr>
+<td>char</td>
+<td>‘\u0000’</td>
+</tr>
+<tr>
+<td>boolean</td>
+<td>false</td>
+</tr>
+<tr>
+<td>reference</td>
+<td>null</td>
+</tr>
+</tbody></table>
+<h4 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h4><p>在准备阶段完成后也就进入了解析阶段，解析阶段的工作就是将类、接口、字段和方法的符号引用转为直接引用。符号引用就是一些字面量的引用，和虚拟机的内部数据结构及内存无关。比较容易理解的就是在Class类文件中，通过常量池进行了大量的符号引用。但仅有符号引用是不够的，当我们需要调用一个类的方法的时候，就需要明确知道方法的位置。通过解析操作，可以将符号引用转化为直接引用，也就是得到类或者字段、方法在内存中的指针或者偏移量。</p>
+<h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p>类加载过程中的最后一个阶段就是初始化，在这个阶段中，JVM会将一个类所有被static关键字标示的代码统统执行一遍，如果执行的是静态变量，那么就会使用用户指定的值覆盖掉之前在准备阶段中JVM为其设置的初始值，当然如果程序中并没有为静态变量显示指定赋值操作，那么所持有的的值仍然是之前的初始值；反之，如果执行的是static代码块，那么在初始化阶段中，JVM就将会执行static代码块中定义的所有操作。</p>
+<h3 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h3><p>类加载器是JVM执行类加载机制的前提，简单来说类加载器的主要任务就是根据一个类的全限定名来读取此类的二进制字节流到JVM内部，然后转换为一个与目标类对应的java.lang.Class对象实例。</p>
+<p>从代码层面来看，类加载器ClassLoader是一个抽象类，它提供了一些重要的接口，用于自定义Class的加载流程和加载方式。ClassLoader的主要方法如下：</p>
+<table>
+<thead>
+<tr>
+<th>方法名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>getParent()</td>
+<td>返回该类加载器的父类加载器</td>
+</tr>
+<tr>
+<td>loadClass(String name)</td>
+<td>加载名称为name的类，返回结果为java.lang.Class类的实例</td>
+</tr>
+<tr>
+<td>findClass(String name)</td>
+<td>查找名称为name的类，返回结果为java.lang.Class类的实例</td>
+</tr>
+<tr>
+<td>findLoadedClass(String name)</td>
+<td>查找名称为name的已经被加载过的类，返回结果为java.lang.Class类的实例</td>
+</tr>
+<tr>
+<td>defineClass(String name, byte[] b, int off, int len)</td>
+<td>把字节数组b中的内容转换为一个Java类，返回结果为java.lang.Class类的实例</td>
+</tr>
+<tr>
+<td>resolveClass(Class&lt;?&gt; c)</td>
+<td>连接指定的一个Java类</td>
+</tr>
+</tbody></table>
+<h4 id="类加载器分类"><a href="#类加载器分类" class="headerlink" title="类加载器分类"></a>类加载器分类</h4><p>在标准的Java程序中，Java虚拟机会创建3类ClassLoader为整个应用程序服务。它们分别是：BootStrap ClassLoader（启动类加载器）、Extension ClassLoader（扩展类加载器）和App ClassLoader（应用类加载器，也称为系统类加载器）。此外，每一个应用程序还可以拥有自定义的ClassLoader，扩展Java虚拟机获取Class数据的能力。</p>
+<p>当系统需要使用一个类时，在判断类是否被加载时，会先从当前底层类加载器进行判断。当系统需要加载一个类时，会从顶层类开始加载，依次向下尝试，直到成功。</p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20191219/20191220101551.png" alt=""></p>
+<p>我们可以通过代码获取当前所使用的类加载器：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 获取应用类加载器</span></span><br><span class="line">        ClassLoader cl = ClassLoaderTest<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>()</span>;</span><br><span class="line">        System.out.println(cl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取扩展类加载器</span></span><br><span class="line">        cl = cl.getParent();</span><br><span class="line">        System.out.println(cl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取启动类加载器</span></span><br><span class="line">        cl = cl.getParent();</span><br><span class="line">        System.out.println(cl);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sun.misc.Launcher$AppClassLoader@18b4aac2</span><br><span class="line">sun.misc.Launcher$ExtClassLoader@1b6d3586</span><br><span class="line">null</span><br></pre></td></tr></table></figure>
+
+<p>由于我们并没有使用自定义类加载器，因此这里会直接由AppClassLoader开始打印。比较特别的是Bootstrap ClassLoader并没有打印出来，而是返回了null。这主要是因为其由C++编写并嵌套在Java虚拟机中，在Java层面没有对象可与之对应。</p>
+<p>不同的类加载器加载的范围并不相同，如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>类加载器</th>
+<th>加载范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bootstrap ClassLoader</td>
+<td>JAVA_HOME/lib目录中的所有类型，或者由选项-Xbootclasspath指定路径中的所有类型</td>
+</tr>
+<tr>
+<td>ExtClassLoader</td>
+<td>JAVA_HOME/lib/ext扩展目录中的所有类型，或者被java.ext.dirs系统变量指定路径中的所有类型</td>
+</tr>
+<tr>
+<td>AppClassLoader</td>
+<td>ClassPath目录中的所有类型</td>
+</tr>
+</tbody></table>
+<p>我们的应用程序都是由这3种类加载器互相配合进行加载的，如果有必要，还可以加入自己定义的类加载器。</p>
+<h4 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h4><p>在上图所描述的类加载器层级关系，称为类加载器的双亲委派模型。双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类加载器。这里类加载器之间的父子关系一般不会以继承的方式来实现，而是都使用组合关系来复用父加载器的代码。</p>
+<p>双亲委派模型的工作过程是：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此，因此所有的加载请求最终都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载。使用双亲委派模型来组织类加载器之间的关系，有两个好处，一是确保每个类加载器都能加载自己范围内的类型；二是确保一个类不会被重复加载。它的主要实现代码都集中在java.lang.ClassLoader的loadClass()方法中，其逻辑清晰易懂：先检查是否已经被加载过，若没有加载则调用父加载器的loadClass()方法，若加载器为空则默认使用启动类加载器作为父加载器。如果父类加载失败，抛出ClassNotFoundException异常后，再调用自己的findClass()方法进行加载。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; loadClass(String name, <span class="keyword">boolean</span> resolve)</span><br><span class="line">    <span class="keyword">throws</span> ClassNotFoundException</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (getClassLoadingLock(name)) &#123;</span><br><span class="line">        <span class="comment">// 首先，检查请求的类是否已经被加载过了</span></span><br><span class="line">        Class&lt;?&gt; c = findLoadedClass(name);</span><br><span class="line">        <span class="keyword">if</span> (c == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    c = parent.loadClass(name, <span class="keyword">false</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    c = findBootstrapClassOrNull(name);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">                <span class="comment">// 如果父类加载器抛出ClassNotFoundException</span></span><br><span class="line">                <span class="comment">// 说明父类加载器无法完成加载请求</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (c == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 在父类加载器无法加载的时候</span></span><br><span class="line">                <span class="comment">// 再调用本身的findClass方法来进行类加载</span></span><br><span class="line">                c = findClass(name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (resolve) &#123;</span><br><span class="line">            resolveClass(c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>JVM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>linux系统编程-线程</title>
     <url>/2019/12/13/linux-programming-thread/</url>
     <content><![CDATA[<p>当你使用线程时，毫无疑问，你已经准备在刀刃上跳舞。线程的复杂度，以及不易调试等特性让绝大部分程序员望而却步。然而对于中大型应用程序来说，它又必不可少。线程是一项让人又爱又恨的技术，熟练运行线程解决复杂的并发问题，已经成为优秀程序员的基本素养之一。<a id="more"></a></p>
