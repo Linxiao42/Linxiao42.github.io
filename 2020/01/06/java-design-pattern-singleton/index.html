@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="alternate" href="/atom.xml" title="Linxiao's Blog" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"always","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    back2top: {"enable":true,"sidebar":true,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="所谓单例，即系统或程序运行期间只允许某个类存在唯一实例。单例设计模式的实际应用场景很多，比如Windows系统中的回收站和任务管理器，你永远也无法将它们各自打开多个，因为它们是被全局共享的，且是唯一的。再比如中国古代的皇帝，同一时期也只能存在一个。这些例子告诉我们，单例的存在往往和资源有关，它能防止一个类的资源被重复加载。">
+<meta name="keywords" content="设计模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java设计模式-单例">
+<meta property="og:url" content="https:&#x2F;&#x2F;linxiao.pro&#x2F;2020&#x2F;01&#x2F;06&#x2F;java-design-pattern-singleton&#x2F;index.html">
+<meta property="og:site_name" content="Linxiao&#39;s Blog">
+<meta property="og:description" content="所谓单例，即系统或程序运行期间只允许某个类存在唯一实例。单例设计模式的实际应用场景很多，比如Windows系统中的回收站和任务管理器，你永远也无法将它们各自打开多个，因为它们是被全局共享的，且是唯一的。再比如中国古代的皇帝，同一时期也只能存在一个。这些例子告诉我们，单例的存在往往和资源有关，它能防止一个类的资源被重复加载。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20200105&#x2F;20200105223101.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20200105&#x2F;20200105112855.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20200105&#x2F;20200105120145.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20200105&#x2F;20200106095555.png">
+<meta property="og:updated_time" content="2020-01-06T07:10:43.683Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;share-1300759451.cos.ap-beijing.myqcloud.com&#x2F;blog-image&#x2F;20200105&#x2F;20200105223101.png">
+
+<link rel="canonical" href="https://linxiao.pro/2020/01/06/java-design-pattern-singleton/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Java设计模式-单例 | Linxiao's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Linxiao's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">学习、记录、分享</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-books">
+
+    <a href="/books/" rel="section"><i class="fa fa-fw fa-book"></i>阅读</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linxiao.pro/2020/01/06/java-design-pattern-singleton/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Linxiao">
+      <meta itemprop="description" content="半醒半醉日复日，花落花开年复年">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Linxiao's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          Java设计模式-单例
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-06 15:10:43 / 修改时间：07:10:43" itemprop="dateCreated datePublished" datetime="2020-01-06T15:10:43Z">2020-01-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/01/06/java-design-pattern-singleton/" class="post-meta-item leancloud_visitors" data-flag-title="Java设计模式-单例" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>所谓单例，即系统或程序运行期间只允许某个类存在唯一实例。单例设计模式的实际应用场景很多，比如Windows系统中的回收站和任务管理器，你永远也无法将它们各自打开多个，因为它们是被全局共享的，且是唯一的。再比如中国古代的皇帝，同一时期也只能存在一个。这些例子告诉我们，单例的存在往往和资源有关，它能防止一个类的资源被重复加载。<a id="more"></a></p>
+<h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><h5 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h5><p>确保某一个类只有一个实例，而且自行实例化并向整个系统提供这个实例。</p>
+<h5 id="类图"><a href="#类图" class="headerlink" title="类图"></a>类图</h5><p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20200105/20200105223101.png" alt=""></p>
+<h5 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h5><ul>
+<li>由于在内存中只有一个实例，减少了内存开销</li>
+<li>可以避免对资源的多重占用，节约系统资源</li>
+<li>设置了全局唯一访问点，可以严格控制访问时机和访问权限</li>
+</ul>
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><ul>
+<li>单例模式通常没有抽象层，因此扩展很困难，通常只能依靠修改代码，这违反了开闭原则</li>
+<li>单例类职责过重，它既充当了工厂角色又要包含实际业务逻辑，违背了单一职责原则</li>
+</ul>
+<h5 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h5><ul>
+<li>要求生成唯一序列号的系统环境</li>
+<li>web页面的计数器</li>
+<li>需要定义大量静态常量和静态方法的工具类</li>
+<li>创建对象需要消耗过多资源的类</li>
+</ul>
+<h5 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h5><ul>
+<li>私有化类构造器</li>
+<li>在类中创建一个私有的本类对象成员</li>
+<li>创建一个公开方法，返回该类对象</li>
+</ul>
+<h4 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h4><h5 id="饿汉式-静态成员变量实现"><a href="#饿汉式-静态成员变量实现" class="headerlink" title="饿汉式-静态成员变量实现"></a>饿汉式-静态成员变量实现</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>饿汉式的实现非常简单，只需要在定义静态变量的时候实例化单例类即可。当类被加载时，单例对象也随之被创建。也同样是因为此特性，它可能会带来资源浪费。因为某些情况下，类或许已经被加载，而单例对象却并未有机会使用。为了让单例对象实例化操作延迟到需要时才执行，我们可以采取懒汉式的单例实现。</p>
+<h5 id="懒汉式-非线程安全实现"><a href="#懒汉式-非线程安全实现" class="headerlink" title="懒汉式-非线程安全实现"></a>懒汉式-非线程安全实现</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton INSTANCE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">            INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>懒汉式与饿汉式的主要区别在于，前者仅声明单例变量却并未创建实例，直到使用时才开始创建并返回，而后者则是在声明单例时便已定义。虽然懒汉式达到了延迟初始化单例的目的，但与此同时它的实现也带来了新的问题，即在多线程场景下，可能会产生多个实例，而非单例。我们可以写一段代码来进行验证，下面的例子中通过线程池创建了10个线程，然后往这10个线程中提交了10000次请求单例对象的操作，并打印请求到的单例对象地址：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">10</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">            executorService.submit(() -&gt; &#123;</span><br><span class="line">                Singleton instance = Singleton.getInstance();</span><br><span class="line">                System.out.println(instance);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        executorService.shutdown();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Singleton@599c9795</span><br><span class="line">Singleton@2e249d35</span><br><span class="line">Singleton@72d978a5</span><br><span class="line">Singleton@2e249d35</span><br><span class="line">Singleton@2e249d35</span><br><span class="line">Singleton@2e249d35</span><br><span class="line">Singleton@2e249d35</span><br><span class="line">Singleton@5581e36e</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>输出显示了多个实例地址，而非单例。</p>
+<p>为什么会这样呢？我们通过画图来分析一下，产生多个实例的原因：</p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20200105/20200105112855.png" alt=""></p>
+<ul>
+<li>当线程1执行到红色节点时，此时INSTANCE为null，线程1准备创建实例</li>
+<li>在线程1创建实例前，CPU时间片耗完，线程陷入阻塞。此时线程2执行到红色节点，发现INSTANCE依然为null，于是也准备创建实例</li>
+<li>线程2创建完实例后并返回，此时线程1在红色节点处被唤醒</li>
+<li>线程1被唤醒后继续创建实例并返回，而此时返回了两个不同实例</li>
+</ul>
+<p>经过上面一系列步骤后，我们发现了创建多个实例的主要原因，在于创建实例这一过程不是原子性的，即每个线程都可能在创建过程中对INSTANCE进行修改，从而引发线程安全性问题。为了让创建过程变为原子性，我们需要在创建方法上加锁。</p>
+<h5 id="懒汉式-synchronized实现"><a href="#懒汉式-synchronized实现" class="headerlink" title="懒汉式-synchronized实现"></a>懒汉式-synchronized实现</h5><p>创建实例过程中加锁的方式有很多，可以使用ReentrantLock，也可以对代码块加锁，原理都一样。此处为了方便，我们直接在getInstance()方法上使用synchronized加锁，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton INSTANCE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">            INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时，再次执行上面的重复请求单例对象测试代码，可以看到，输出的对象都为同一个</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">Singleton@783fadc2</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>虽然synchronized实现方式解决了懒汉式带来的可能会创建多个实例的bug，但与此同时，synchronized实现方式依旧带来了一定的性能损耗，损耗的原因主要在于并发场景下，通过加锁会使多线程变为串行访问，我们通过画图说明：</p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20200105/20200105120145.png" alt=""></p>
+<p>我们把单例的创建过程通过加锁的方式变为原子性操作，也就是上图紫色区域。此时多线程无法随意进入此区域，每次只有一个线程持有锁后可以访问此区域代码，访问结束后释放锁，其他线程开始争夺锁并访问。换句话说，当多个线程需要单例时，由于锁的存在会产生阻塞，然后逐个以串行的方式来获取单例，而并发的优势此刻全无。为了解决此问题，我们可以使用双重检查锁实现来进行优化。</p>
+<h5 id="懒汉式-双重检查锁实现"><a href="#懒汉式-双重检查锁实现" class="headerlink" title="懒汉式-双重检查锁实现"></a>懒汉式-双重检查锁实现</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton INSTANCE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>双重检查锁实现的关键在于，我们将锁的粒度减小了，因此造成性能浪费的范围也就更小。上面的代码有几个地方需要额外注意：</p>
+<ul>
+<li>第一次检查单例是否创建时不需要加锁</li>
+<li>当实例不存在，需要创建新实例时，开始加锁</li>
+<li>在加锁的代码中，需要二次检查实例是否存在。这是因为，可能在创建之前多个线程就已经执行完INSTANCE == null的判断，并准备接下来创建实例。仅对创建代码加锁而不二次检查实例是否存在，则依然可能产生创建多个实例的问题</li>
+</ul>
+<p>经过双重检查锁的优化，貌似创建单例的问题彻底解决了，但事实上并发如此。在我们没有注意的地方，暗藏着新的问题，它可能会导致空指针或其他异常发生，并难以复现。产生问题的原因在new Singleton()这一行。虽然从代码层面上看，创建对象是一条语句，但在Java执行过程中，它实际等效于三个指令：</p>
+<ul>
+<li>为对象分配内存</li>
+<li>初始化对象</li>
+<li>将INSTANCE引用指向分配的内存地址</li>
+</ul>
+<p>由于Java会进行一些优化行为，因此上面三个指令可能会发生指令重排序，变成如下顺序</p>
+<ul>
+<li>为对象分配内存</li>
+<li>将INSTANCE引用指向分配的内存地址</li>
+<li>初始化对象</li>
+</ul>
+<p>顺序虽然变了，但从结果上看，即便发生了指令重排序，创建的实例和没有发生指令重排序时完全一样。况且，进行指令重排序优化可以提高CPU执行效率，何乐而不为呢？但事实并非如此，我们通过图例来说明指令重排序会导致的问题：</p>
+<p><img src="https://share-1300759451.cos.ap-beijing.myqcloud.com/blog-image/20200105/20200106095555.png" alt=""></p>
+<p>当线程1执行完前两个指令时，INSTANCE便已经不为null。此时线程2进入方法，发现INSTANCE不为null则直接进行对象访问。而尴尬之处在于，虽然INSTANCE不为null，但由于指令重排序，INSTANCE的初始化过程是在为INSTANCE引用赋值之后，也就是说此时对象中的资源也许尚未加载完成。一旦线程2在这一间隙访问，则有可能引发未知异常。</p>
+<p>前面通过添加synchronized关键字，虽然能保证线程间的可见性及原子性，但并不能阻止Java对某些语句进行指令重排序。为了防止指令重排序给INSTANCE初始化带来的问题，我们应当为其加上volatile标记，即把声明语句变为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton INSTANCE;</span><br></pre></td></tr></table></figure>
+
+<h5 id="静态内部类实现"><a href="#静态内部类实现" class="headerlink" title="静态内部类实现"></a>静态内部类实现</h5><p>除了懒汉式和饿汉式两种实现方式，也可以采用静态内部类实现，它兼顾了前两者的优点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">InnerSingleton</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> InnerSingleton.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>外部类Singleton没有static属性，所以不会像饿汉式那样立即加载单例对象。只有真正调用getInstance()方法时，才会加载静态内部类和其中的static成员INSTANCE。由于INSTANCE是static final类型，因此虚拟机保证了线程安全，内存中只有这样一个实例存在，而且只能被赋值一次。通过这种方法兼备了并发的高效调用和延迟加载的优势。</p>
+<h5 id="枚举实现"><a href="#枚举实现" class="headerlink" title="枚举实现"></a>枚举实现</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> Singleton &#123;</span><br><span class="line">    INSTANCE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span></span>&#123;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于枚举本身就是一个单例，因此JVM从根本上保证了它的安全性，这种实现方式不仅简单，还可以避免通过反射和反序列化破坏单例的漏洞。</p>
+<p>为什么枚举是个单例呢？我们通过jad工具对上述代码生成的class文件进行反编译，得到如下结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Decompiled by Jad v1.5.8g. Copyright 2001 Pavel Kouznetsov.</span></span><br><span class="line"><span class="comment">// Jad home page: http://www.kpdus.com/jad.html</span></span><br><span class="line"><span class="comment">// Decompiler options: packimports(3) </span></span><br><span class="line"><span class="comment">// Source File Name:   Singleton.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> <span class="keyword">extends</span> <span class="title">Enum</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Singleton[] values()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> (Singleton[])$VALUES.clone();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">valueOf</span><span class="params">(String name)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Singleton)Enum.valueOf(Singleton, name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">(String s, <span class="keyword">int</span> i)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(s, i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton INSTANCE;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton $VALUES[];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> </span><br><span class="line">    &#123;</span><br><span class="line">        INSTANCE = <span class="keyword">new</span> Singleton(<span class="string">"INSTANCE"</span>, <span class="number">0</span>);</span><br><span class="line">        $VALUES = (<span class="keyword">new</span> Singleton[] &#123;</span><br><span class="line">            INSTANCE</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中我们可以提取到下列关键信息：</p>
+<ul>
+<li>枚举类其实是一个final class</li>
+<li>枚举类的构造方法被声明为private，即无法在外部创建枚举实例</li>
+<li>枚举类成员INSTANCE 是static final类型，并且会在枚举类的static代码块中进行定义</li>
+</ul>
+<p>可以看出使用枚举实现单例，其实和饿汉式是类似的，因此它也无法做到延迟加载。</p>
+<h4 id="破坏单例"><a href="#破坏单例" class="headerlink" title="破坏单例"></a>破坏单例</h4><h5 id="通过反射破坏单例"><a href="#通过反射破坏单例" class="headerlink" title="通过反射破坏单例"></a>通过反射破坏单例</h5><p>除了枚举，采用饿汉式、懒汉式和静态内部类实现的单例都可以通过反射进行破坏。下面代码用来演示流程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 获取单例类无参构造器</span></span><br><span class="line">        Constructor&lt;Singleton&gt; constructor = Singleton<span class="class">.<span class="keyword">class</span>.<span class="title">getDeclaredConstructor</span>(<span class="title">null</span>)</span>;</span><br><span class="line">        <span class="comment">// 设置私有的构造为可访问</span></span><br><span class="line">        constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建多个对象</span></span><br><span class="line">        Singleton singleton1 = constructor.newInstance();</span><br><span class="line">        Singleton singleton2 = constructor.newInstance();</span><br><span class="line"></span><br><span class="line">        System.out.println(singleton1);</span><br><span class="line">        System.out.println(singleton2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Singleton@330bedb4</span><br><span class="line">Singleton@2503dbd3</span><br></pre></td></tr></table></figure>
+
+<p>可见此处创建了两个不同对象。要解决反射破坏也很简单，只需要在构造方法中进行判断即可。若类已构造出一个对象，则再次调用构造器时抛出异常。下面针对静态内部类实现的单例进行演示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (Singleton<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (InnerSingleton.INSTANCE != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Only one Singleton object can be created"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译执行后，输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread "main" java.lang.reflect.InvocationTargetException</span><br><span class="line">	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)</span><br><span class="line">	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)</span><br><span class="line">	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)</span><br><span class="line">	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)</span><br><span class="line">	at JavaMain.main(JavaMain.java:15)</span><br><span class="line">Caused by: java.lang.RuntimeException: Only one Singleton object can be created</span><br><span class="line">	at Singleton.&lt;init&gt;(Singleton.java:8)</span><br><span class="line">	... 5 more</span><br></pre></td></tr></table></figure>
+
+<p>通过在构造方法中判断INSTANCE是否被初始化来阻挡反射攻击这一方式，仅针对饿汉式和静态内部类方式有效。原因在于，这两者都在类加载时为INSTANCE赋值，并且为final类型，所以后续通过反射调用构造方法时，其中的非空判断总为true。而饿汉式为了懒加载，其中的INSTANCE为null，因此在使用反射时调用私有的构造方法，判断总为false，所以还是会创建多个实例。</p>
+<p>针对懒汉式单例阻挡反射攻击无效，网上有一种方案是添加一个额外的flag，标记单例是否已经被初始化过，完整代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton INSTANCE;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> flag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Only one Singleton object can be created"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        flag = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再次尝试通过反射攻击后，报出异常。看上去貌似可行，但我们现在改变攻击方式，通过反射将flag的值重置为true：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 获取单例类无参构造器</span></span><br><span class="line">        Constructor&lt;Singleton&gt; constructor = Singleton<span class="class">.<span class="keyword">class</span>.<span class="title">getDeclaredConstructor</span>(<span class="title">null</span>)</span>;</span><br><span class="line">        <span class="comment">// 设置私有的构造方法为可访问</span></span><br><span class="line">        constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        Field flag = Singleton.class.getDeclaredField("flag");</span><br><span class="line">        flag.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建一个对象</span></span><br><span class="line">        Singleton singleton1 = constructor.newInstance();</span><br><span class="line">        <span class="comment">// 设置静态变量flag的值为false</span></span><br><span class="line">        flag.set(Singleton<span class="class">.<span class="keyword">class</span>, <span class="title">false</span>)</span>;</span><br><span class="line">        <span class="comment">// 再次创建对象</span></span><br><span class="line">        Singleton singleton2 = constructor.newInstance();</span><br><span class="line"></span><br><span class="line">        System.out.println(singleton1);</span><br><span class="line">        System.out.println(singleton2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Singleton@4b67cf4d</span><br><span class="line">Singleton@7ea987ac</span><br></pre></td></tr></table></figure>
+
+<p>可见，当采用懒汉式单例的时候不论如何预防，总能通过反射进行破坏。</p>
+<h5 id="通过序列化破坏单例"><a href="#通过序列化破坏单例" class="headerlink" title="通过序列化破坏单例"></a>通过序列化破坏单例</h5><p>除了通过反射可以破坏单例，如果一个类实现了Serializable接口，那么也可以通过反序列化的方式破坏单例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Singleton instance1 = Singleton.getInstance();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将单例写入文件</span></span><br><span class="line">        FileOutputStream fos = <span class="keyword">new</span> FileOutputStream(<span class="string">"./instance.obj"</span>);</span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(fos);</span><br><span class="line">        oos.writeObject(instance1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 从文件读取单例</span></span><br><span class="line">        FileInputStream fis = <span class="keyword">new</span> FileInputStream(<span class="string">"./instance.obj"</span>);</span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(fis);</span><br><span class="line">        Singleton instance2 = (Singleton) ois.readObject();</span><br><span class="line">        </span><br><span class="line">        System.out.println(instance1);</span><br><span class="line">        System.out.println(instance2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Singleton@29453f44</span><br><span class="line">Singleton@7b23ec81</span><br></pre></td></tr></table></figure>
+
+<p>上面输出了两个不同实例。产生多个实例的原因，主要是因为在反序列化读取对象文件的过程中重新生成了对象，要解决此问题，可以在单例类中添加一个readResolve()方法，完整代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ObjectStreamException;</span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton INSTANCE;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">readResolve</span><span class="params">()</span> <span class="keyword">throws</span> ObjectStreamException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (INSTANCE == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    INSTANCE = <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当添加readResolve()方法后，使用反序列化读取对象时就不会从对象流中通过反射创建新的对象，而是强制从readResolve()方法中返回当前类的静态成员变量INSTANCE。</p>
+<h5 id="为何无法破坏枚举单例"><a href="#为何无法破坏枚举单例" class="headerlink" title="为何无法破坏枚举单例"></a>为何无法破坏枚举单例</h5><p>枚举不仅使用简便，并且它能阻挡反射和反序列化攻击。在演示攻击枚举单例前，我们需要先熟悉下枚举类的构造方法。枚举类的源代码文件位于jdk\src.zipjava\lang\Enum.java，其构造方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Sole constructor.  Programmers cannot invoke this constructor.</span></span><br><span class="line"><span class="comment"> * It is for use by code emitted by the compiler in response to</span></span><br><span class="line"><span class="comment"> * enum type declarations.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> name - The name of this enum constant, which is the identifier</span></span><br><span class="line"><span class="comment"> *               used to declare it.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> ordinal - The ordinal of this enumeration constant (its position</span></span><br><span class="line"><span class="comment"> *         in the enum declaration, where the initial constant is assigned</span></span><br><span class="line"><span class="comment"> *         an ordinal of zero).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="title">Enum</span><span class="params">(String name, <span class="keyword">int</span> ordinal)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.ordinal = ordinal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>知道枚举类的构造方法参数类型后，我们便可通过反射进行攻击，需要注意的是下面获取构造方法需填入类型：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 获取单例类无参构造器</span></span><br><span class="line">        Constructor&lt;Singleton&gt; constructor = Singleton<span class="class">.<span class="keyword">class</span>.<span class="title">getDeclaredConstructor</span>(<span class="title">String</span>.<span class="title">class</span>, <span class="title">int</span>.<span class="title">class</span>)</span>;</span><br><span class="line">        <span class="comment">// 设置构造方法为可访问</span></span><br><span class="line">        constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建多个对象</span></span><br><span class="line">        Singleton singleton1 = constructor.newInstance(<span class="string">"singleton1"</span>, <span class="number">1</span>);</span><br><span class="line">        Singleton singleton2 = constructor.newInstance(<span class="string">"singleton2"</span>, <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(singleton1);</span><br><span class="line">        System.out.println(singleton2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread "main" java.lang.IllegalArgumentException: Cannot reflectively create enum objects</span><br><span class="line">	at java.lang.reflect.Constructor.newInstance(Constructor.java:417)</span><br><span class="line">	at JavaMain.main(JavaMain.java:12)</span><br></pre></td></tr></table></figure>
+
+<p>可见攻击失败，我们根据提示，找出Constructor.java类的417行，看看究竟：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> T <span class="title">newInstance</span><span class="params">(Object ... initargs)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InstantiationException, IllegalAccessException,</span></span><br><span class="line"><span class="function">IllegalArgumentException, InvocationTargetException</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!override) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!Reflection.quickCheckMemberAccess(clazz, modifiers)) &#123;</span><br><span class="line">            Class&lt;?&gt; caller = Reflection.getCallerClass();</span><br><span class="line">            checkAccess(caller, clazz, <span class="keyword">null</span>, modifiers);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// --------------------下面是第417行----------------------</span></span><br><span class="line">    <span class="keyword">if</span> ((clazz.getModifiers() &amp; Modifier.ENUM) != <span class="number">0</span>)                       </span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Cannot reflectively create enum objects"</span>);</span><br><span class="line">    ConstructorAccessor ca = constructorAccessor;   <span class="comment">// read volatile</span></span><br><span class="line">    <span class="keyword">if</span> (ca == <span class="keyword">null</span>) &#123;</span><br><span class="line">        ca = acquireConstructorAccessor();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    T inst = (T) ca.newInstance(initargs);</span><br><span class="line">    <span class="keyword">return</span> inst;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，417行做出了一个判断，在通过反射创建实例时，如果构造器的类型是枚举类型，则会抛出一个IllegalArgumentException，即通过反射攻击失败。</p>
+<p>下面我们尝试通过反序列化来攻击，代码基本上与之前写过的一样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Singleton instance1 = Singleton.INSTANCE;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将单例写入文件</span></span><br><span class="line">        FileOutputStream fos = <span class="keyword">new</span> FileOutputStream(<span class="string">"./instance.obj"</span>);</span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(fos);</span><br><span class="line">        oos.writeObject(instance1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 从文件读取单例</span></span><br><span class="line">        FileInputStream fis = <span class="keyword">new</span> FileInputStream(<span class="string">"./instance.obj"</span>);</span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(fis);</span><br><span class="line">        Singleton instance2 = (Singleton) ois.readObject();</span><br><span class="line"></span><br><span class="line">        System.out.println(instance1 + <span class="string">"@"</span> + instance1.hashCode());</span><br><span class="line">        System.out.println(instance2 + <span class="string">"@"</span> + instance2.hashCode());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">INSTANCE@312714112</span><br><span class="line">INSTANCE@312714112</span><br></pre></td></tr></table></figure>
+
+<p>通过反序列化创建的实例依旧和直接获取的单例一致，即通过序列化攻击也失败。</p>
+<p>之所以使用其他方式实现的单例可以攻击成功，是因为它们在反序列化过程中，会通过反射来创建新实例。而枚举在获取实例这一阶段比较特殊，我们可以深入到ObjectInputStream中探究其实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Enum&lt;?&gt; readEnum(<span class="keyword">boolean</span> unshared) <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">       <span class="keyword">if</span> (bin.readByte() != TC_ENUM) &#123;</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> InternalError();</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       ObjectStreamClass desc = readClassDesc(<span class="keyword">false</span>);</span><br><span class="line">       <span class="keyword">if</span> (!desc.isEnum()) &#123;</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> InvalidClassException(<span class="string">"non-enum class: "</span> + desc);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">int</span> enumHandle = handles.assign(unshared ? unsharedMarker : <span class="keyword">null</span>);</span><br><span class="line">       ClassNotFoundException resolveEx = desc.getResolveException();</span><br><span class="line">       <span class="keyword">if</span> (resolveEx != <span class="keyword">null</span>) &#123;</span><br><span class="line">           handles.markException(enumHandle, resolveEx);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       String name = readString(<span class="keyword">false</span>);</span><br><span class="line">       Enum&lt;?&gt; result = <span class="keyword">null</span>;</span><br><span class="line">       Class&lt;?&gt; cl = desc.forClass();</span><br><span class="line">       <span class="keyword">if</span> (cl != <span class="keyword">null</span>) &#123;</span><br><span class="line">           <span class="keyword">try</span> &#123;</span><br><span class="line">               <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">               Enum&lt;?&gt; en = Enum.valueOf((Class)cl, name);</span><br><span class="line">               result = en;</span><br><span class="line">           &#125; <span class="keyword">catch</span> (IllegalArgumentException ex) &#123;</span><br><span class="line">               <span class="keyword">throw</span> (IOException) <span class="keyword">new</span> InvalidObjectException(</span><br><span class="line">                   <span class="string">"enum constant "</span> + name + <span class="string">" does not exist in "</span> +</span><br><span class="line">                   cl).initCause(ex);</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">if</span> (!unshared) &#123;</span><br><span class="line">               handles.setObject(enumHandle, result);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       handles.finish(enumHandle);</span><br><span class="line">       passHandle = enumHandle;</span><br><span class="line">       <span class="keyword">return</span> result;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码用于读取枚举类实例并返回，其中有一行非常关键：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Enum&lt;?&gt; en = Enum.valueOf((Class)cl, name);</span><br></pre></td></tr></table></figure>
+
+<p>这一行的目的在于从枚举类中获取name的值，而此值正是枚举类的实例。这也就解释了，为何通过反序列化也无法破坏枚举类实现的单例，因为在其反序列化过程中根本没有生成新的枚举值。</p>
+
+    </div>
+
+    
+    
+    
+      
+        <div class="reward-container">
+  <div>请作者喝杯咖啡？</div>
+  <button disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="Linxiao 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="Linxiao 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Linxiao
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://linxiao.pro/2020/01/06/java-design-pattern-singleton/" title="Java设计模式-单例">https://linxiao.pro/2020/01/06/java-design-pattern-singleton/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"><i class="fa fa-tag"></i> 设计模式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2019/12/28/java-concurrency-thread-local/" rel="next" title="Java并发编程-ThreadLocal解析">
+                  <i class="fa fa-chevron-left"></i> Java并发编程-ThreadLocal解析
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本概念"><span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#定义"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#类图"><span class="nav-text">类图</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#优点"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#缺点"><span class="nav-text">缺点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#适用场景"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#实现步骤"><span class="nav-text">实现步骤</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实现方式"><span class="nav-text">实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#饿汉式-静态成员变量实现"><span class="nav-text">饿汉式-静态成员变量实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#懒汉式-非线程安全实现"><span class="nav-text">懒汉式-非线程安全实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#懒汉式-synchronized实现"><span class="nav-text">懒汉式-synchronized实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#懒汉式-双重检查锁实现"><span class="nav-text">懒汉式-双重检查锁实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#静态内部类实现"><span class="nav-text">静态内部类实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#枚举实现"><span class="nav-text">枚举实现</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#破坏单例"><span class="nav-text">破坏单例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#通过反射破坏单例"><span class="nav-text">通过反射破坏单例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#通过序列化破坏单例"><span class="nav-text">通过序列化破坏单例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#为何无法破坏枚举单例"><span class="nav-text">为何无法破坏枚举单例</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="Linxiao"
+    src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Linxiao</p>
+  <div class="site-description" itemprop="description">半醒半醉日复日，花落花开年复年</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Linxiao42" title="GitHub &amp;rarr; https:&#x2F;&#x2F;github.com&#x2F;Linxiao42" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Linxiao</span>
+</div>
+
+        
+
+
+
+
+
+
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=lRaS7JronjiApi73k5iWP8xD-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'lRaS7JronjiApi73k5iWP8xD-gzGzoHsz',
+            'X-LC-Key': 'mJ0pFWRQroOumHbNkCV5ohp8',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.includes(item);
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'lRaS7JronjiApi73k5iWP8xD-gzGzoHsz',
+    appKey: 'mJ0pFWRQroOumHbNkCV5ohp8',
+    placeholder: "Just go go",
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: '' || 'zh-cn',
+    path: location.pathname,
+    recordIP: false,
+    serverURLs: ''
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
