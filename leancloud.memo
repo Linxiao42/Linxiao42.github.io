@@ -10,4 +10,5 @@
 {"title":"JVM探究-类加载机制","url":"/2019/12/22/jvm-classloader/"},
 {"title":"Java并发编程-ThreadLocal解析","url":"/2019/12/28/java-concurrency-thread-local/"},
 {"title":"Java设计模式-单例","url":"/2020/01/06/java-design-pattern-singleton/"},
+{"title":"Java设计模式-面向对象设计原则","url":"/2020/01/08/java-design-pattern-principles/"},
 ]
